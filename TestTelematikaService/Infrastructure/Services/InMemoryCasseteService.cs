@@ -94,7 +94,7 @@ namespace TestTelematikaService.Infrastructure.Services
         public bool IssueBanknotes(int amount)
         {
             int remains = amount;
-            _cassettes = _cassettes.OrderByDescending(c => c.NominalValue.NominalValue).ToList();
+            _cassettes = _cassettes.OrderBy(c => c.NominalValue.NominalValue).ToList();
             
             int count = 0;
 
