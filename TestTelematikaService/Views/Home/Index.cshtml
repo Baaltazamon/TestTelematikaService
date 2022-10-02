@@ -1,0 +1,73 @@
+﻿@model Tuple<IEnumerable<CassetteModel>, IEnumerable<NominalModel>>
+@{
+    ViewData["Title"] = "Home Page";
+
+}
+
+
+<div class="container">
+    <div class="text-center">
+        <h1 class="display-4">Банкомат</h1>
+        <form method="get" asp-action="CreateAndGet">
+            <label for="countCassettes">Количество кассет</label><br />
+            <input id="countCassettes" name="countCassettes" type="range" step="1" value="1" min="1" max="8" oninput="this.nextElementSibling.value = this.value">
+            <output>1</output>
+            <div>
+                <input class="btn-success" value="Сгенерировать" type="submit" />
+            </div>
+        </form>
+        
+        <table class="table">
+            <tr>
+                <th>Id</th>
+                <th>Номинал</th>
+                <th>Количество</th>
+                <th>Исправность</th>
+                <th>Сохранить</th>
+            </tr>
+            @foreach (var cassette in Model.Item1)
+            {
+                <form method="post" asp-antiforgery="true" asp-action="Index" asp-route-id="@cassette.Id">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    <tr>
+                        <td>@cassette.Id</td>
+                        <td>
+                            <select name="nominalValue" size="1">
+                                
+                                @foreach (var nominal in Model.Item2)
+                                {
+                                    if (nominal == cassette.NominalValue)
+                                    {
+                                        <option selected value="@nominal.NominalValue">@nominal.NominalValue</option>
+                                    }
+                                        
+                                    <option value="@nominal.NominalValue">@nominal.NominalValue</option>
+                                }
+                            </select>
+
+                        </td>
+                        <td><input type="number" name="quantity" placeholder="@nameof(cassette.Quantity)" value="@cassette.Quantity"/></td>
+                        <td><input type="checkbox" name="serviceable" value="true" checked="@cassette.Serviceable"/></td>
+                        <td><input type="submit" class="btn-success" value="Сохранить"/></td>
+                    </tr>
+                </form>
+                }
+            </table>
+        <div>
+            @if(null != TempData["alertMessage"])
+            {
+            <script type="text/javascript">
+                alert("@TempData["alertMessage"]");
+            </script>
+            }
+            <form method="post" asp-action="CheckAmount">
+                <label for="amount">Сумма</label><br />
+                <input id="amount" name="amount" type="number">
+                <div>
+                    <input class="btn-success" value="Проверить" type="submit" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
