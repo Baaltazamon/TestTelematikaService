@@ -12,6 +12,8 @@ namespace TestTelematikaService.Infrastructure.Services
         private  List<CassetteModel> _cassettes;
         private readonly List<NominalModel> _nominal;
         private readonly List<CassetteModel> _issueBanknote;
+        private int[] Log;
+        
 
         public InMemoryCasseteService()
         {
@@ -115,35 +117,104 @@ namespace TestTelematikaService.Infrastructure.Services
         public bool IssueBanknotes(int amount)
         {
 
+
+
+            #region oldMethod
+
+
             _cassettes = _cassettes.OrderByDescending(c => c.NominalValue.NominalValue).ToList();
+            List<CassetteModel> cassettes = _cassettes.Where(c => c.NominalValue.NominalValue <= amount).ToList();
+            Log = new int[cassettes.Count];
             _issueBanknote.Clear();
-            int count = 0;
 
-            for (int i = 0; i < _cassettes.Count; i++)
-            {
-                if (_cassettes[i].Serviceable.Equals(false) || amount < _cassettes[i].NominalValue.NominalValue)
-                {
-                    continue;
-                }
-                count = amount / _cassettes[i].NominalValue.NominalValue;
-                if (count > _cassettes[i].Quantity)
-                {
-                    amount -= _cassettes[i].Quantity * _cassettes[i].NominalValue.NominalValue;
-                    IssueBanknote(_cassettes[i].Id, _cassettes[i].Quantity, _cassettes[i].NominalValue);
-                    continue;
-                }
-                amount -= count * _cassettes[i].NominalValue.NominalValue;
-                IssueBanknote(_cassettes[i].Id, count, _cassettes[i].NominalValue);
-            }
-
+            amount = Culculate(amount, cassettes);
 
             if (amount > 0)
+            {
                 return false;
+            }
             else
+            {
+                for (int i = 0; i < Log.Length; i++)
+                {
+                    if (Log[i] > 0)
+                        IssueBanknote(cassettes[i].Id, Log[i], cassettes[i].NominalValue);
+
+                }
                 return true;
+            }
+
+            #endregion
+
         }
 
+        private int Culculate(int amount, List<CassetteModel> cassettes)
+        {
+            int count = 0;
+            int deg = 0;
+            bool change = false;
+            int contAmount = 0;
+            bool first = true;
+            do
+            {
+                contAmount = amount;
+                for (int i = 0; i < cassettes.Count; i++)
+                {
+                    if (_cassettes[i].Serviceable.Equals(false))
+                    {
+                        Log[i] = 0;
+                        continue;
+                    }
+                    deg = 0;
+                    if (CheckLog() && !first)
+                    {
+                        if (Log[i] == 0 && !change)
+                        {
+                            
+                            continue;
+                        }
+                        if (Log[i] > 0 && !change)
+                        {
+                            deg = 1;
+                            change = true;
+                        }
+                        
+                    }
+                    count = contAmount / cassettes[i].NominalValue.NominalValue;
+                    count -= (count - (Log[i]-1)) * deg;
+                    if (count > cassettes[i].Quantity)
+                    {
+                        contAmount -= cassettes[i].Quantity * cassettes[i].NominalValue.NominalValue;
+                        Log[i] = cassettes[i].Quantity;
+                        continue;
+                    }
+                    contAmount -= count * cassettes[i].NominalValue.NominalValue;
+                    Log[i] = count;
+                }
 
+                change = false;
+                first = false;
+            } while (CheckLog() && contAmount > 0);
+            
+
+            return contAmount;
+        }
+       
+
+        private bool CheckLog()
+        {
+            bool check = false;
+            for (int i = 0; i < Log.Length; i++)
+            {
+                if (Log[i] > 0)
+                {
+                    return true;
+                }
+                    
+            }
+
+            return false;
+        }
         public IEnumerable<NominalModel> GetAllNominal()
         {
             return _nominal;
