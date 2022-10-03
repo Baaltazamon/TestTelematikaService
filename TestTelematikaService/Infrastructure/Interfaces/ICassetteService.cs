@@ -38,8 +38,21 @@ namespace TestTelematikaService.Infrastructure.Interfaces
         /// Создание списка кассет
         /// </summary>
         /// <param name="count">Количество кассет</param>
-        public void CreateListCassette(int count);
+        void CreateListCassette(int count);
+        /// <summary>
+        /// Редактирование кассеты
+        /// </summary>
+        /// <param name="model">Кассета</param>
+        void Edit(CassetteModel model);
 
-        public void Edit(CassetteModel model);
+        /// <summary>
+        /// Добавление банкноты в список выданных
+        /// </summary>
+        /// <param name="id">id банкноты</param>
+        /// <param name="count">Количество банкнот</param>
+        /// <param name="nominal">Номинал банкноты</param>
+        void IssueBanknote(int id, int count, NominalModel nominal);
+
+        List<CassetteModel> GetIssueBanknotes();
     }
 }

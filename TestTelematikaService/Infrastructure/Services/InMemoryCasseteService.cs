@@ -11,6 +11,7 @@ namespace TestTelematikaService.Infrastructure.Services
     {
         private  List<CassetteModel> _cassettes;
         private readonly List<NominalModel> _nominal;
+        private readonly List<CassetteModel> _issueBanknote;
 
         public InMemoryCasseteService()
         {
@@ -48,6 +49,7 @@ namespace TestTelematikaService.Infrastructure.Services
                 }
             };
             _cassettes = new List<CassetteModel>();
+            _issueBanknote = new List<CassetteModel>();
         }
 
         public IEnumerable<CassetteModel> GetAllCassettes()
@@ -68,6 +70,23 @@ namespace TestTelematikaService.Infrastructure.Services
             cassette.Quantity = model.Quantity;
             cassette.Serviceable = model.Serviceable;
             cassette.NominalValue = model.NominalValue;
+        }
+
+        public void IssueBanknote(int id, int count, NominalModel nominal)
+        {
+            CassetteModel cassetteModel = new CassetteModel
+            {
+                Id = id,
+                NominalValue = nominal,
+                Quantity = count,
+                Serviceable = true
+            };
+            _issueBanknote.Add(cassetteModel);
+        }
+
+        public List<CassetteModel> GetIssueBanknotes()
+        {
+            return _issueBanknote;
         }
 
         public List<CassetteModel> CreateCassette(int count)
@@ -91,36 +110,39 @@ namespace TestTelematikaService.Infrastructure.Services
             return cassettes;
         }
 
+        
+
         public bool IssueBanknotes(int amount)
         {
-            int remains = amount;
-            _cassettes = _cassettes.OrderBy(c => c.NominalValue.NominalValue).ToList();
-            
+
+            _cassettes = _cassettes.OrderByDescending(c => c.NominalValue.NominalValue).ToList();
+            _issueBanknote.Clear();
             int count = 0;
 
             for (int i = 0; i < _cassettes.Count; i++)
             {
-                if (_cassettes[i].Serviceable.Equals(false) || remains < _cassettes[i].NominalValue.NominalValue)
+                if (_cassettes[i].Serviceable.Equals(false) || amount < _cassettes[i].NominalValue.NominalValue)
                 {
                     continue;
                 }
-                count = remains / _cassettes[i].NominalValue.NominalValue;
+                count = amount / _cassettes[i].NominalValue.NominalValue;
                 if (count > _cassettes[i].Quantity)
                 {
-                    remains -= _cassettes[i].Quantity * _cassettes[i].NominalValue.NominalValue;
-                    
+                    amount -= _cassettes[i].Quantity * _cassettes[i].NominalValue.NominalValue;
+                    IssueBanknote(_cassettes[i].Id, _cassettes[i].Quantity, _cassettes[i].NominalValue);
                     continue;
                 }
-                remains -= count * _cassettes[i].NominalValue.NominalValue;
-                
+                amount -= count * _cassettes[i].NominalValue.NominalValue;
+                IssueBanknote(_cassettes[i].Id, count, _cassettes[i].NominalValue);
             }
 
-            
-            if (remains > 0)
+
+            if (amount > 0)
                 return false;
             else
                 return true;
         }
+
 
         public IEnumerable<NominalModel> GetAllNominal()
         {

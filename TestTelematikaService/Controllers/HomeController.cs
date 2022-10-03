@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using TestTelematikaService.Infrastructure.Interfaces;
 using TestTelematikaService.Models;
@@ -55,8 +56,15 @@ namespace TestTelematikaService.Controllers
 
             bool check = _cassetteService.IssueBanknotes(amount.Value);
             stopwatch.Stop();
+            StringBuilder str = new StringBuilder();
+            List<CassetteModel> cassetteModels = _cassetteService.GetIssueBanknotes();
+            foreach (var cassette in cassetteModels)
+            {
+                str.Append(
+                    $"{cassette.Quantity} banknotes with a nominal value of {cassette.NominalValue.NominalValue} were issued from cassette {cassette.Id}\\n");
+            }
             if (check)
-                TempData["alertMessage"] = $"The issue is possible. Time spent {stopwatch.Elapsed.TotalMilliseconds} Milliseconds";
+                TempData["alertMessage"] = $"The issue is possible. Time spent {stopwatch.Elapsed.TotalMilliseconds} Milliseconds\\n{str}";
             else
                 TempData["alertMessage"] = $"The issue is impossible. Time spent {stopwatch.Elapsed.TotalMilliseconds} Milliseconds";
 
